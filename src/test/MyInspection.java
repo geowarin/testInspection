@@ -6,6 +6,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,29 +23,21 @@ public class MyInspection extends LocalInspectionTool {
         return "myInspection";
     }
 
-    @Override
-    public void inspectionStarted(LocalInspectionToolSession session, boolean isOnTheFly) {
-        System.out.println("inspection started");
-        super.inspectionStarted(session, isOnTheFly);
-    }
-
     public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
-        System.out.println("checkfile " + file);
         ProblemDescriptor problem = null;
 
         if ("JavaScript files".equals(file.getFileType().getName())) {
             Project project = file.getProject();
             VirtualFile jsFile = file.getVirtualFile();
 
-            Pattern pattern = Pattern.compile("definePackage\\(\"(.*)\"\\s*,.*", Pattern.DOTALL);
+            Pattern pattern = Pattern.compile(".*definePackage\\(\"(.*)\"\\s*,.*", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(file.getText());
             if (matcher.matches()) {
 
-                String projectPath = project.getBaseDir().getPath();
-                String directoryPackage = jsFile.getParent().getPath().substring(projectPath.length() + 1).replaceAll("/", ".");
+                String directoryPackage = getDirectoryPackage(project, jsFile);
                 String jsPackage = matcher.group(1);
 
-                if (!directoryPackage.equals(jsPackage)) {
+                if (!jsPackage.equals(directoryPackage)) {
 
                     LocalQuickFix[] fixes = getFixes(file, directoryPackage, jsPackage);
                     problem = manager.createProblemDescriptor(file, "package " + jsPackage + " does not match " + directoryPackage, false, fixes, ProblemHighlightType.WEAK_WARNING);
@@ -53,9 +47,21 @@ public class MyInspection extends LocalInspectionTool {
         return problem != null ? new ProblemDescriptor[]{problem} : null;
     }
 
-    private LocalQuickFix[] getFixes(PsiFile jsFile, String directoryPackage, String jsPackage) {
-        ChangeJSPackageQuickFix changeJSPackageQuickFix = new ChangeJSPackageQuickFix(jsFile, jsPackage, directoryPackage);
+    private String getDirectoryPackage(Project project, VirtualFile jsFile) {
+        String projectPath = project.getBaseDir().getPath();
+        String parentPath = jsFile.getParent().getPath();
+        if (projectPath.length() + 1 > parentPath.length())
+            return null;
+        return parentPath.substring(projectPath.length() + 1).replaceAll("/", ".");
+    }
 
-        return new LocalQuickFix[]{changeJSPackageQuickFix};
+    private LocalQuickFix[] getFixes(PsiFile jsFile, String directoryPackage, String jsPackage) {
+        List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>();
+
+        if (directoryPackage != null)
+            fixes.add(new ChangeJSPackageQuickFix(jsFile, jsPackage, directoryPackage));
+        fixes.add(new ChangeFileLocationQuickFix(jsFile, jsPackage));
+
+        return fixes.toArray(new LocalQuickFix[fixes.size()]);
     }
 }
