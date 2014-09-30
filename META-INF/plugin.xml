@@ -1,6 +1,6 @@
 <idea-plugin version="2">
-  <id>com.yourcompany.unique.plugin.id</id>
-  <name>Plugin display name here</name>
+  <id>com.geowarin.bportal-plugin</id>
+  <name>BPortal Plugin</name>
   <version>1.0</version>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -26,7 +26,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
-      <localInspection language="Javascript" shortName="UnusedProperty" bundle="message.messages" key="inspection.display.name"
+      <localInspection shortName="myInspection" bundle="message.messages" key="inspection.display.name"
                        groupKey="inspection.group.display.name" enabledByDefault="true" level="WARNING"
                        implementationClass="test.MyInspection"/>
   </extensions>
