@@ -14,10 +14,12 @@ import java.io.IOException;
 
 public class ChangeFileLocationQuickFix implements LocalQuickFix {
     public static final String NAME = "Change File location";
+    private VirtualFile root;
     private final PsiFile jsFile;
     private final String destination;
 
-    public ChangeFileLocationQuickFix(PsiFile jsFile, String destination) {
+    public ChangeFileLocationQuickFix(VirtualFile root, PsiFile jsFile, String destination) {
+        this.root = root;
         this.jsFile = jsFile;
         this.destination = destination;
     }
@@ -42,12 +44,12 @@ public class ChangeFileLocationQuickFix implements LocalQuickFix {
         }
     }
 
-    private static VirtualFile createDirInProject(Project project, String destination) {
-        VirtualFile destinationFile = project.getBaseDir().findFileByRelativePath(destination.replaceAll("\\.", "/"));
+    private VirtualFile createDirInProject(Project project, String destination) {
+        VirtualFile destinationFile = root.findFileByRelativePath(destination.replaceAll("\\.", "/"));
         if (destinationFile != null)
             return destinationFile;
 
-        PsiDirectory destinationDirectory = PsiManager.getInstance(project).findDirectory(project.getBaseDir());
+        PsiDirectory destinationDirectory = PsiManager.getInstance(project).findDirectory(root);
         return DirectoryUtil.createSubdirectories(destination, destinationDirectory, ".").getVirtualFile();
     }
 }

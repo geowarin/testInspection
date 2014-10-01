@@ -2,6 +2,8 @@ package test;
 
 import com.intellij.codeInspection.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
@@ -34,12 +36,13 @@ public class MyInspection extends LocalInspectionTool {
             Matcher matcher = pattern.matcher(file.getText());
             if (matcher.matches()) {
 
-                String directoryPackage = getDirectoryPackage(project, jsFile);
+                VirtualFile root = getRoot(project, jsFile);
+                String directoryPackage = getDirectoryPackage(root, jsFile);
                 String jsPackage = matcher.group(1);
 
                 if (!jsPackage.equals(directoryPackage)) {
 
-                    LocalQuickFix[] fixes = getFixes(file, directoryPackage, jsPackage);
+                    LocalQuickFix[] fixes = getFixes(file, root, directoryPackage, jsPackage);
                     problem = manager.createProblemDescriptor(file, "package " + jsPackage + " does not match " + directoryPackage, false, fixes, ProblemHighlightType.WEAK_WARNING);
                 }
             }
@@ -47,20 +50,29 @@ public class MyInspection extends LocalInspectionTool {
         return problem != null ? new ProblemDescriptor[]{problem} : null;
     }
 
-    private String getDirectoryPackage(Project project, VirtualFile jsFile) {
-        String projectPath = project.getBaseDir().getPath();
+    private VirtualFile getRoot(Project project, VirtualFile jsFile) {
+        ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
+        VirtualFile moduleSourceRoot = fileIndex.getSourceRootForFile(jsFile);
+        if (moduleSourceRoot != null) {
+            return moduleSourceRoot;
+        }
+        return fileIndex.getContentRootForFile(jsFile);
+    }
+
+    private String getDirectoryPackage(VirtualFile baseDir, VirtualFile jsFile) {
+        String projectPath = baseDir.getPath();
         String parentPath = jsFile.getParent().getPath();
         if (projectPath.length() + 1 > parentPath.length())
             return null;
         return parentPath.substring(projectPath.length() + 1).replaceAll("/", ".");
     }
 
-    private LocalQuickFix[] getFixes(PsiFile jsFile, String directoryPackage, String jsPackage) {
+    private LocalQuickFix[] getFixes(PsiFile jsFile, VirtualFile root, String directoryPackage, String jsPackage) {
         List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>();
 
         if (directoryPackage != null)
             fixes.add(new ChangeJSPackageQuickFix(jsFile, jsPackage, directoryPackage));
-        fixes.add(new ChangeFileLocationQuickFix(jsFile, jsPackage));
+        fixes.add(new ChangeFileLocationQuickFix(root, jsFile, jsPackage));
 
         return fixes.toArray(new LocalQuickFix[fixes.size()]);
     }
