@@ -36,7 +36,7 @@ public class MyInspection extends LocalInspectionTool {
             Matcher matcher = pattern.matcher(file.getText());
             if (matcher.matches()) {
 
-                VirtualFile root = getRoot(project, jsFile);
+                VirtualFile root = removeSpecial(getRoot(project, jsFile));
                 String directoryPackage = getDirectoryPackage(root, jsFile);
                 String jsPackage = matcher.group(1);
 
@@ -50,6 +50,20 @@ public class MyInspection extends LocalInspectionTool {
         return problem != null ? new ProblemDescriptor[]{problem} : null;
     }
 
+    private VirtualFile removeSpecial(VirtualFile root) {
+        return getOne(root, "src/main/webapp/js", "src/main/webapp");
+    }
+
+    private VirtualFile getOne(VirtualFile root, String... paths) {
+        for (String path : paths) {
+            VirtualFile dir = root.findFileByRelativePath(path);
+            if (dir != null) {
+                return dir;
+            }
+        }
+        return root;
+    }
+
     private VirtualFile getRoot(Project project, VirtualFile jsFile) {
         ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
         VirtualFile moduleSourceRoot = fileIndex.getSourceRootForFile(jsFile);
@@ -59,8 +73,8 @@ public class MyInspection extends LocalInspectionTool {
         return fileIndex.getContentRootForFile(jsFile);
     }
 
-    private String getDirectoryPackage(VirtualFile baseDir, VirtualFile jsFile) {
-        String projectPath = baseDir.getPath();
+    private String getDirectoryPackage(VirtualFile root, VirtualFile jsFile) {
+        String projectPath = root.getPath();
         String parentPath = jsFile.getParent().getPath();
         if (projectPath.length() + 1 > parentPath.length())
             return null;
