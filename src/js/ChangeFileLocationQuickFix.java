@@ -1,4 +1,4 @@
-package test;
+package js;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;

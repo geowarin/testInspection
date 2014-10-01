@@ -26,9 +26,9 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Add your extensions here -->
-      <localInspection shortName="myInspection" bundle="message.messages" key="inspection.display.name"
+      <localInspection shortName="JsPackageDoesNotMacthDirectoryInspection" bundle="message.messages" key="inspection.display.name"
                        groupKey="inspection.group.display.name" enabledByDefault="true" level="WARNING"
-                       implementationClass="test.MyInspection"/>
+                       implementationClass="js.JsPackageDoesNotMacthDirectoryInspection"/>
   </extensions>
 
   <application-components>
