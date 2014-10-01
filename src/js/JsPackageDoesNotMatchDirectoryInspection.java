@@ -20,10 +20,13 @@ import static com.intellij.codeInspection.ProblemHighlightType.*;
  */
 public class JsPackageDoesNotMatchDirectoryInspection extends LocalInspectionTool {
 
+    @NotNull
+    @Override
     public String getShortName() {
         return "JsPackageDoesNotMatchDirectoryInspection";
     }
 
+    @Override
     public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
         if (!isJavascriptFile(file)) {
             return null;
@@ -31,6 +34,10 @@ public class JsPackageDoesNotMatchDirectoryInspection extends LocalInspectionToo
 
         VirtualFile jsFile = file.getVirtualFile();
         String jsPackage = getDefinedJsPackage(file);
+
+        if (jsPackage == null) {
+            return null;
+        }
 
         ProjectRootFinder projectRootFinder = new ProjectRootFinder(file.getProject());
         projectRootFinder.considerRoots("src/main/webapp/js", "src/main/webapp");
@@ -41,7 +48,7 @@ public class JsPackageDoesNotMatchDirectoryInspection extends LocalInspectionToo
             return null;
         }
 
-        LocalQuickFix[] fixes = getFixes(file, root, directoryPackage, jsPackage);
+        LocalQuickFix[] fixes = getFixes(jsFile, root, directoryPackage, jsPackage);
         String errorMessage = String.format("Package %s does not match %s", jsPackage, directoryPackage);
         ProblemDescriptor problem = manager.createProblemDescriptor(file, errorMessage, false, fixes, WEAK_WARNING);
         return new ProblemDescriptor[] {problem};
@@ -60,7 +67,7 @@ public class JsPackageDoesNotMatchDirectoryInspection extends LocalInspectionToo
         return "JavaScript files".equals(file.getFileType().getName());
     }
 
-    private LocalQuickFix[] getFixes(PsiFile jsFile, VirtualFile root, String directoryPackage, String jsPackage) {
+    private LocalQuickFix[] getFixes(VirtualFile jsFile, VirtualFile root, String directoryPackage, String jsPackage) {
         List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>();
 
         if (directoryPackage != null)

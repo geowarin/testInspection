@@ -15,20 +15,22 @@ import java.io.IOException;
 public class ChangeFileLocationQuickFix implements LocalQuickFix {
     public static final String NAME = "Change File location";
     private VirtualFile root;
-    private final PsiFile jsFile;
+    private final VirtualFile jsFile;
     private final String destination;
 
-    public ChangeFileLocationQuickFix(VirtualFile root, PsiFile jsFile, String destination) {
+    public ChangeFileLocationQuickFix(VirtualFile root, VirtualFile jsFile, String destination) {
         this.root = root;
         this.jsFile = jsFile;
         this.destination = destination;
     }
 
+    @NotNull
     @Override
     public String getName() {
         return NAME;
     }
 
+    @NotNull
     @Override
     public String getFamilyName() {
         return NAME;
@@ -38,7 +40,7 @@ public class ChangeFileLocationQuickFix implements LocalQuickFix {
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
         try {
             VirtualFile destinationDir = createDirInProject(project, destination);
-            jsFile.getVirtualFile().move(this, destinationDir);
+            jsFile.move(this, destinationDir);
         } catch (IOException e) {
             e.printStackTrace();
         }
