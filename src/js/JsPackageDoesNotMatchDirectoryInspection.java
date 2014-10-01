@@ -18,10 +18,10 @@ import static com.intellij.codeInspection.ProblemHighlightType.*;
  *
  * @author Geoffroy Warin (http://geowarin.github.io)
  */
-public class JsPackageDoesNotMacthDirectoryInspection extends LocalInspectionTool {
+public class JsPackageDoesNotMatchDirectoryInspection extends LocalInspectionTool {
 
     public String getShortName() {
-        return "JsPackageDoesNotMacthDirectoryInspection";
+        return "JsPackageDoesNotMatchDirectoryInspection";
     }
 
     public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
